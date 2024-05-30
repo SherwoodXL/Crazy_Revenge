@@ -18,9 +18,9 @@ public class PlayerCam : MonoBehaviour
     // Перемнная под управление телом по оси Y
     [SerializeField]
     Transform body;
-    // Переменная под управлением головы по оси X
+    // Переменная под управлением головы и руки по оси X
     [SerializeField]
-    Transform head;
+    Transform spine;
 
     private void Start()
     {
@@ -44,6 +44,6 @@ public class PlayerCam : MonoBehaviour
         orientation.rotation = Quaternion.Euler(0, yRotation, 0);
 
         body.rotation = Quaternion.Euler(0, yRotation, 0);
-        head.rotation = Quaternion.Euler(xRotation, yRotation, 0);
+        spine.rotation = Quaternion.Euler(xRotation, yRotation, 0);
     }
 }
