@@ -1,9 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : Photon.MonoBehaviour
 {
+    [SerializeField]
+    PhotonView _photonView;
+    [SerializeField]
+    TMP_Text _userName;
+
+    [SerializeField]
+    GameObject _playerCamera;
+
+
+
+    int hp = 100;
+    [SerializeField]
+    TMP_Text hpText;
+
     // –азличные переменные скоростей
     [Header("Movement")]
     [SerializeField]
@@ -37,6 +52,8 @@ public class PlayerController : MonoBehaviour
     // Ќаправление, которое хранит все возможные координаты объекта
     [SerializeField]
     Transform orientation;
+
+    [Header("Slope")]
     // ”гол наклона дл€ соскальзывани€
     [SerializeField]
     float maxAngle;
@@ -52,10 +69,24 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     Animator anim;
 
+    private void Awake()
+    {
+        if (_photonView.isMine)
+        {
+            _playerCamera.SetActive(true);
+            _userName.text = PhotonNetwork.playerName;
+        }
+        else
+        {
+            _userName.text = photonView.owner.name;
+        }
+    }
+
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
+        _photonView = GetComponent<PhotonView>();
 
         readyToJump = true;
     }
@@ -81,16 +112,16 @@ public class PlayerController : MonoBehaviour
         if ((Input.GetButton("Horizontal") || Input.GetButton("Vertical")) && Input.GetKey(KeyCode.LeftControl))
         {
             MovePlayer(sprintSpeed);
-            anim.SetTrigger("Run");
+            photonView.RPC("SetAnim", PhotonTargets.All, "Run");
         }
         else if ((Input.GetButton("Horizontal") || Input.GetButton("Vertical")) && !Input.GetKey(KeyCode.LeftControl))
         {
             MovePlayer(walkSpeed);
-            anim.SetTrigger("Walk");
+            photonView.RPC("SetAnim", PhotonTargets.All, "Walk");
         }
         else
         {
-            anim.SetTrigger("Idle");
+            photonView.RPC("SetAnim", PhotonTargets.All, "Idle");
         }
 
         Slope();
@@ -102,14 +133,15 @@ public class PlayerController : MonoBehaviour
         RaycastHit hitInfo;
 
         moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
+
         if (Physics.Raycast(transform.position, Vector3.down, out hitInfo, playerHeight + 0.5f))
         {
             // ѕровер€ем угол наклона поверхности
-            float slopeAngle = Vector3.Angle(hitInfo.normal, Vector3.up);
+            float slopeAngle = Vector3.Angle(Vector3.up, hitInfo.normal);
 
-            if (slopeAngle > maxAngle)
+            if (slopeAngle > maxAngle && grounded)
             {
-                // ѕримин€ем силу гравитации, учитыва€ угол наклона
+                // ѕримин€ем силу гравитации, учитыва€ угол наклона         
                 Vector3 gravity = Physics.gravity * Mathf.Cos(Mathf.Deg2Rad * slopeAngle);
                 rb.AddForce(gravity * Time.deltaTime * slopeAngle, ForceMode.Impulse);
             }
@@ -137,7 +169,7 @@ public class PlayerController : MonoBehaviour
     {
         // рассчитаем направление
         moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
-        
+
         // на земле
         if (grounded)
             rb.AddForce(moveDirection.normalized * move * 10f, ForceMode.Force);
@@ -172,5 +204,17 @@ public class PlayerController : MonoBehaviour
     private void ResetJump()
     {
         readyToJump = true;
+    }
+
+    public void Damage(int damage)
+    {
+        hp -= damage;
+        hpText.text = $"Health: {hp}";
+    }
+
+    [PunRPC]
+    public void SetAnim(string action)
+    {
+        anim.SetTrigger(action);
     }
 }
