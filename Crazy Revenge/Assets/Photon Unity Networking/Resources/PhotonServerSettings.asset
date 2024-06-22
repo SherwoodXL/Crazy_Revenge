@@ -44,4 +44,10 @@ MonoBehaviour:
   - RequestForPickupTimes
   - TaggedPlayer
   - SetAnim
+  - SetAnimMove
+  - SetAnimShot
+  - Shoot
+  - ShootAnim
+  - Damage
+  - GetDamage
   DisableAutoOpenWizard: 1

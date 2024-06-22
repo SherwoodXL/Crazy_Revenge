@@ -13,12 +13,6 @@ public class PlayerController : Photon.MonoBehaviour
     [SerializeField]
     GameObject _playerCamera;
 
-
-
-    int hp = 100;
-    [SerializeField]
-    TMP_Text hpText;
-
     // Различные переменные скоростей
     [Header("Movement")]
     [SerializeField]
@@ -112,16 +106,16 @@ public class PlayerController : Photon.MonoBehaviour
         if ((Input.GetButton("Horizontal") || Input.GetButton("Vertical")) && Input.GetKey(KeyCode.LeftControl))
         {
             MovePlayer(sprintSpeed);
-            photonView.RPC("SetAnim", PhotonTargets.All, "Run");
+            photonView.RPC("SetAnimMove", PhotonTargets.All, "Run");
         }
         else if ((Input.GetButton("Horizontal") || Input.GetButton("Vertical")) && !Input.GetKey(KeyCode.LeftControl))
         {
             MovePlayer(walkSpeed);
-            photonView.RPC("SetAnim", PhotonTargets.All, "Walk");
+            photonView.RPC("SetAnimMove", PhotonTargets.All, "Walk");
         }
         else
         {
-            photonView.RPC("SetAnim", PhotonTargets.All, "Idle");
+            photonView.RPC("SetAnimMove", PhotonTargets.All, "Idle");
         }
 
         Slope();
@@ -206,14 +200,8 @@ public class PlayerController : Photon.MonoBehaviour
         readyToJump = true;
     }
 
-    public void Damage(int damage)
-    {
-        hp -= damage;
-        hpText.text = $"Health: {hp}";
-    }
-
     [PunRPC]
-    public void SetAnim(string action)
+    public void SetAnimMove(string action)
     {
         anim.SetTrigger(action);
     }
