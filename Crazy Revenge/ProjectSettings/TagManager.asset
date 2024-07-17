@@ -7,6 +7,9 @@ TagManager:
   - Ground
   - PlayerRed
   - PlayerYellow
+  - CollectableObject
+  - CollectZone
+  - SaveZone
   layers:
   - Default
   - TransparentFX

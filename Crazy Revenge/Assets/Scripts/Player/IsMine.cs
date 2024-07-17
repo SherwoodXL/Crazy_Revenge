@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class IsMine : MonoBehaviour
 {
-    [SerializeField] private PlayerController _playerController;
-    [SerializeField] private Weapon _weapon;
-    [SerializeField] private GameObject _camera;
-    [SerializeField] private PhotonView _photonView;
-    [SerializeField] private GameObject _playerUI;
+    [SerializeField] PlayerController _playerController;
+    [SerializeField] Weapon _weapon;
+    [SerializeField] GameObject _camera;
+    [SerializeField] PhotonView _photonView;
+    [SerializeField] GameObject _playerUI;
 
     private void Start()
     {

@@ -7,6 +7,16 @@ public class Weapon : Photon.MonoBehaviour
 {
     string[] tagPlayer = { "PlayerRed", "PlayerYellow" };
     int tagNum;
+    [SerializeField]
+    GameObject player;
+
+    GameObject deathCamera;
+
+    [SerializeField]
+    TMP_Text scores;
+
+    [SerializeField]
+    GameObject redScreen;
 
     [SerializeField]
     Camera mainCamera;
@@ -35,6 +45,8 @@ public class Weapon : Photon.MonoBehaviour
     TMP_Text countAmmo;
     [SerializeField]
     PlayerController damageActive;
+    [SerializeField]
+    RoundsManager roundsManager;
 
     [SerializeField]
     GameObject[] weapon;
@@ -61,8 +73,10 @@ public class Weapon : Photon.MonoBehaviour
 
         shotAnim = GetComponent<Animator>();
 
+        roundsManager = FindObjectOfType<RoundsManager>().GetComponent<RoundsManager>();
+        deathCamera = GameObject.FindGameObjectWithTag("MainCamera");
+
         view = GetComponent<PhotonView>();
-        ammo = 10;
         countAmmo.text = $"Ammo: {ammo}";
         hpText.text = $"Health: {hp}";
 
@@ -87,6 +101,11 @@ public class Weapon : Photon.MonoBehaviour
                 weaponAu[3].Play();
             }
         }
+
+        if (roundsManager.gameEvent == 2)
+        {
+            scores.text = $"Time:{roundsManager.timeCU}";
+        }
     }
 
     public void Shoot(float rangeShot, float shootForce, int damage)
@@ -101,7 +120,7 @@ public class Weapon : Photon.MonoBehaviour
                 if (hit.collider.CompareTag(tagPlayer[tagNum]))
                 {
                     Weapon cht = hit.collider.GetComponent<Weapon>();
-                    cht.photonView.RPC("GetDamage", PhotonTargets.All, damage);
+                    cht.photonView.RPC("GetDamage", PhotonTargets.AllBuffered, damage);
                 }
             }
         }
@@ -128,5 +147,54 @@ public class Weapon : Photon.MonoBehaviour
     {
         hp -= damage;
         hpText.text = $"Health: {hp}";
+
+        if (hp <= 0 && photonView.isMine)
+        {
+            photonView.RPC("Die", PhotonTargets.AllBuffered);
+            hp = 100;
+            hpText.text = $"Health: {hp}";
+
+            if (gameObject.tag == tagPlayer[0])
+            {
+                gameObject.transform.position = new Vector3(10, 10, 10);
+            }
+            else if (gameObject.tag == tagPlayer[1])
+            {
+                gameObject.transform.position = new Vector3(-10, 10, 10);
+            }
+        }
+
+        redScreen.SetActive(true);
+        Invoke("RedScreen", 0.2f);
+    }
+
+    void RedScreen()
+    {
+        redScreen.SetActive(false);
+    }
+
+    [PunRPC]
+    public void Die()
+    {
+        bool resetDie = true;
+
+        if (roundsManager.gameEvent == 0 && resetDie == true)
+        {
+            if (gameObject.tag == tagPlayer[0])
+            {
+                ScoresKills(0, 1);
+            }
+            else if (gameObject.tag == tagPlayer[1])
+            {
+                ScoresKills(1, 0);
+            }
+            resetDie = false;
+        }
+    }
+
+    private void ScoresKills(int redScore, int yellowScore)
+    {
+        roundsManager._redScore += redScore;
+        roundsManager._yellowScore += yellowScore;
     }
 }

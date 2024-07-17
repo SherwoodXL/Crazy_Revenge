@@ -5,6 +5,13 @@ using TMPro;
 
 public class PlayerController : Photon.MonoBehaviour
 {
+    string[] tagPlayer = { "PlayerRed", "PlayerYellow" };
+
+    [SerializeField]
+    TMP_Text scores;
+    [SerializeField]
+    TMP_Text points;
+
     [SerializeField]
     PhotonView _photonView;
     [SerializeField]
@@ -13,14 +20,18 @@ public class PlayerController : Photon.MonoBehaviour
     [SerializeField]
     GameObject _playerCamera;
 
+    [SerializeField]
+    RoundsManager roundsManager;
+
+    [SerializeField]
+    GameObject baconTaken;
+
+    bool take = false;
+
+    float time;
+
     // Различные переменные скоростей
     [Header("Movement")]
-    [SerializeField]
-    float moveSpeed;
-    [SerializeField]
-    float groundDrag;
-    [SerializeField]
-    float jumpForce;
     [SerializeField]
     float jumpCooldown;
     [SerializeField]
@@ -82,11 +93,15 @@ public class PlayerController : Photon.MonoBehaviour
         rb.freezeRotation = true;
         _photonView = GetComponent<PhotonView>();
 
+        roundsManager = GameObject.FindObjectOfType<RoundsManager>().GetComponent<RoundsManager>();
+
         readyToJump = true;
     }
 
     private void Update()
     {
+        time += Time.deltaTime;
+
         // Проверка Raycast-ом наличия поверхности пригодной для прыжка
         Debug.DrawRay(transform.position, Vector3.down, Color.red, playerHeight + 0.2f);
         grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight + 0.2f, whatIsGround);
@@ -96,9 +111,24 @@ public class PlayerController : Photon.MonoBehaviour
 
         // handle drag
         if (grounded)
-            rb.drag = groundDrag;
+            rb.drag = roundsManager.groundDrag;
         else
             rb.drag = 0;
+
+        if (roundsManager.gameEvent == 0)
+        {
+            scores.text = $"{roundsManager._redScore}:Kills:{roundsManager._yellowScore}";
+        }
+        else if (roundsManager.gameEvent == 1)
+        {
+            scores.text = $"{roundsManager._redScore}:Bacons:{roundsManager._yellowScore}";
+        }
+        else if (roundsManager.gameEvent == 2)
+        {
+            scores.text = $"{roundsManager._redScore}:Score:{roundsManager._yellowScore}";
+        }
+
+        points.text = $"{roundsManager._redPoint}:Red Yellow:{roundsManager._yellowPoint}";
     }
 
     private void FixedUpdate()
@@ -178,10 +208,10 @@ public class PlayerController : Photon.MonoBehaviour
         Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
         // ограничиваем скорость, если вдруг разогнались
-        if (flatVel.magnitude > moveSpeed)
+        if (flatVel.magnitude > roundsManager.moveSpeed)
         {
             // Нормализуй вектор, прежде чем умножить - Конфуций
-            Vector3 limitedVel = flatVel.normalized * moveSpeed;
+            Vector3 limitedVel = flatVel.normalized * roundsManager.moveSpeed;
             rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
         }
 
@@ -192,7 +222,7 @@ public class PlayerController : Photon.MonoBehaviour
         // обнуляем по высоте скорость
         rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
-        rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+        rb.AddForce(transform.up * roundsManager.jumpForce, ForceMode.Impulse);
     }
 
     private void ResetJump()
@@ -204,5 +234,70 @@ public class PlayerController : Photon.MonoBehaviour
     public void SetAnimMove(string action)
     {
         anim.SetTrigger(action);
+    }
+
+    private void OnTriggerEnter(Collider collision)
+    {
+        if (collision.gameObject.CompareTag("CollectableObject") && take == false)
+        {
+            take = true;
+            _photonView.RPC("TakenBacon", PhotonTargets.AllViaServer, true);
+        }
+
+        if (collision.gameObject.CompareTag("CollectZone") && baconTaken.activeSelf == true && time > 1.5f)
+        {
+            _photonView.RPC("TakenBacon", PhotonTargets.AllViaServer, false);
+            if (gameObject.tag == tagPlayer[0] && take == true)
+            {
+                _photonView.RPC(nameof(SumScore), PhotonTargets.AllBuffered, 1, 0);
+                take = false;
+            }
+            else if (gameObject.tag == tagPlayer[1] && take == true)
+            {
+                _photonView.RPC(nameof(SumScore), PhotonTargets.AllBuffered, 0, 1);
+                take = false;
+            }
+
+            _photonView.RPC(nameof(BringBacon), PhotonTargets.MasterClient);
+            time = 0;
+        }
+
+
+        if (collision.gameObject.CompareTag("SaveZone") && roundsManager.catchup == false && time > 1.5f)
+        {
+            if (gameObject.tag == tagPlayer[0])
+            {
+                _photonView.RPC(nameof(SumScore), PhotonTargets.AllBuffered, 1, 0);
+                roundsManager.catchup = true;
+                roundsManager.SaveZonePosition();
+            }
+            else if (gameObject.tag == tagPlayer[1])
+            {
+                _photonView.RPC(nameof(SumScore), PhotonTargets.AllBuffered, 0, 1);
+                roundsManager.catchup = true;
+                roundsManager.SaveZonePosition();
+            }
+            time = 0;
+        }
+    }
+
+    [PunRPC]
+    private void BringBacon()
+    {
+        roundsManager.bring = true;
+    }
+
+    [PunRPC]
+    public void TakenBacon(bool active)
+    {
+        roundsManager.bacon.SetActive(!active);
+        baconTaken.SetActive(active);
+    }
+
+    [PunRPC]
+    private void SumScore(int redScore, int yellowScore)
+    {
+        roundsManager._redScore += redScore;
+        roundsManager._yellowScore += yellowScore;
     }
 }

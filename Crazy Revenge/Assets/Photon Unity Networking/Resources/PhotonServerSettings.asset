@@ -15,8 +15,8 @@ MonoBehaviour:
   AppID: 7506f26c-9bb9-41a3-a801-106a00afc80e
   VoiceAppID: 
   ChatAppID: 
-  HostType: 1
-  PreferredRegion: 12
+  HostType: 4
+  PreferredRegion: 2
   EnabledRegions: -1
   Protocol: 0
   ServerAddress: 
@@ -50,4 +50,19 @@ MonoBehaviour:
   - ShootAnim
   - Damage
   - GetDamage
+  - EventCollection
+  - EventDropzone
+  - EventIce
+  - TakenBacon
+  - Randomaizer
+  - BaconPosition
+  - SaveZonePosition
+  - GameEvent
+  - Active
+  - Die
+  - SumScore
+  - SumScoreCollect
+  - Points
+  - BringBacon
+  - OtherGetStatistic
   DisableAutoOpenWizard: 1
