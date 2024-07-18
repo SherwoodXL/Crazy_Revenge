@@ -37,8 +37,6 @@ public class RoundsManager : Photon.MonoBehaviour
     [SerializeField]
     GameObject[] player;
 
-    float endOfTime = 18;
-    public float timeCU = 18;
     public bool catchup = false;
 
     private void Start()
@@ -58,14 +56,14 @@ public class RoundsManager : Photon.MonoBehaviour
         plusPoint = true;
         bring = true;
         catchup = false;
-        timeCU = 18;
-        endOfTime = 18;
         _redScore = 0;
         _yellowScore = 0;
         gameEvent = numEvent;
 
         if (numEvent == 1)
             bacon.SetActive(true);
+        else if (numEvent == 2 && PhotonNetwork.isMasterClient)
+            SaveZonePosition();
     }
 
     private void Update()
@@ -88,13 +86,13 @@ public class RoundsManager : Photon.MonoBehaviour
             groundDrag = -2;
             moveSpeed = 7;
 
-            if (_redScore == 2 && PhotonNetwork.isMasterClient && plusPoint == true)
+            if (_redScore == 3 && PhotonNetwork.isMasterClient && plusPoint == true)
             {
                 Randomaizer(Random.Range(0, 3));
                 photonView.RPC(nameof(Points), PhotonTargets.AllBufferedViaServer, 1, 0);
                 plusPoint = false;
             }
-            else if (_yellowScore == 2 && PhotonNetwork.isMasterClient && plusPoint == true)
+            else if (_yellowScore == 3 && PhotonNetwork.isMasterClient && plusPoint == true)
             {
                 Randomaizer(Random.Range(0, 3));
                 photonView.RPC(nameof(Points), PhotonTargets.AllBufferedViaServer, 0, 1);
@@ -123,13 +121,13 @@ public class RoundsManager : Photon.MonoBehaviour
                 bring = false;
             }
 
-            if (_redScore == 5 && PhotonNetwork.isMasterClient && plusPoint == true)
+            if (_redScore == 3 && PhotonNetwork.isMasterClient && plusPoint == true)
             {
                 Randomaizer(Random.Range(0, 3));
                 photonView.RPC(nameof(Points), PhotonTargets.AllBufferedViaServer, 1, 0);
                 plusPoint = false;
             }
-            else if (_yellowScore == 5 && PhotonNetwork.isMasterClient && plusPoint == true)
+            else if (_yellowScore == 3 && PhotonNetwork.isMasterClient && plusPoint == true)
             {
                 Randomaizer(Random.Range(0, 3));
                 photonView.RPC(nameof(Points), PhotonTargets.AllBufferedViaServer, 0, 1);
@@ -159,13 +157,13 @@ public class RoundsManager : Photon.MonoBehaviour
         {
             saveZone.SetActive(true);
 
-            if (_redScore == 5 && PhotonNetwork.isMasterClient && plusPoint == true)
+            if (_redScore == 3 && PhotonNetwork.isMasterClient && plusPoint == true)
             {
                 Randomaizer(Random.Range(0, 3));
                 photonView.RPC(nameof(Points), PhotonTargets.AllBufferedViaServer, 1, 0);
                 plusPoint = false;
             }
-            else if (_yellowScore == 5 && PhotonNetwork.isMasterClient && plusPoint == true)
+            else if (_yellowScore == 3 && PhotonNetwork.isMasterClient && plusPoint == true)
             {
                 Randomaizer(Random.Range(0, 3));
                 photonView.RPC(nameof(Points), PhotonTargets.AllBufferedViaServer, 0, 1);
@@ -180,7 +178,7 @@ public class RoundsManager : Photon.MonoBehaviour
 
     public void SaveZonePosition()
     {
-        saveZone.transform.position = new Vector3(Random.Range(-14.5f, 11f), 3, Random.Range(-14.8f, 9f));
+        saveZone.transform.position = new Vector3(Random.Range(20, -20), 10, Random.Range(14, -14));
         catchup = false;
     }
 

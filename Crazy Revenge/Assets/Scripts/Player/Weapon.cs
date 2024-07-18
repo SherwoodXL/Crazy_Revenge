@@ -7,8 +7,6 @@ public class Weapon : Photon.MonoBehaviour
 {
     string[] tagPlayer = { "PlayerRed", "PlayerYellow" };
     int tagNum;
-    [SerializeField]
-    GameObject player;
 
     GameObject deathCamera;
 
@@ -93,18 +91,13 @@ public class Weapon : Photon.MonoBehaviour
             if (ammo != 0)
             {
                 nextFire = Time.time + 1 / fireRate;
-                Shoot(10, 15, 10);
+                Shoot(15, 20, 15);
                 view.RPC("ShootAnim", PhotonTargets.All, 0, "Shot");
             }
             else
             {
                 weaponAu[3].Play();
             }
-        }
-
-        if (roundsManager.gameEvent == 2)
-        {
-            scores.text = $"Time:{roundsManager.timeCU}";
         }
     }
 
@@ -156,11 +149,11 @@ public class Weapon : Photon.MonoBehaviour
 
             if (gameObject.tag == tagPlayer[0])
             {
-                gameObject.transform.position = new Vector3(10, 10, 10);
+                gameObject.transform.position = new Vector3(22, 4.25f, 0);
             }
             else if (gameObject.tag == tagPlayer[1])
             {
-                gameObject.transform.position = new Vector3(-10, 10, 10);
+                gameObject.transform.position = new Vector3(-22, 4.25f, 0);
             }
         }
 

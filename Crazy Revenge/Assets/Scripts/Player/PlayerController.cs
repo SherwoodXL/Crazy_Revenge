@@ -128,7 +128,12 @@ public class PlayerController : Photon.MonoBehaviour
             scores.text = $"{roundsManager._redScore}:Score:{roundsManager._yellowScore}";
         }
 
-        points.text = $"{roundsManager._redPoint}:Red Yellow:{roundsManager._yellowPoint}";
+        if (roundsManager._redPoint != 3 && roundsManager._yellowPoint != 3)
+            points.text = $"{roundsManager._redPoint}:Red Yellow:{roundsManager._yellowPoint}";
+        else if (roundsManager._redPoint == 3 && roundsManager._yellowPoint != 3)
+            points.text = $"Win :Red Yellow:{roundsManager._yellowPoint}";
+        else if (roundsManager._redPoint != 3 && roundsManager._yellowPoint == 3)
+            points.text = $"{roundsManager._redPoint}:Red Yellow: Win";
     }
 
     private void FixedUpdate()
